@@ -1,0 +1,49 @@
+# ─── Environment & Secrets ────────────────────────────────────
+.env
+*.env.local
+*.env.production
+
+# ─── Maven ────────────────────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ─── IntelliJ IDEA ────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ─── VS Code ──────────────────────────────────────────────────
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# ─── OS ───────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+spring.log
+
+# ─── Docker ───────────────────────────────────────────────────
+docker/mysql/data/
+
+# ─── Test coverage ────────────────────────────────────────────
+**/target/site/
+**/target/surefire-reports/

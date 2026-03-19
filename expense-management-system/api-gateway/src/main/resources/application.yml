@@ -1,0 +1,140 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      # ─── Global CORS ──────────────────────────────────────────
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+            allowedHeaders: "*"
+            maxAge: 3600
+
+      # ─── Default filters applied to every route ───────────────
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 20       # tokens/second
+            redis-rate-limiter.burstCapacity: 50        # max burst
+            redis-rate-limiter.requestedTokens: 1
+            key-resolver: "#{@ipKeyResolver}"
+
+      # ─── Routes ───────────────────────────────────────────────
+      routes:
+
+        # Auth Service — public (no JWT filter)
+        - id: auth-service-public
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: authCB
+                fallbackUri: forward:/fallback/auth
+
+        # Auth Service — protected user management
+        - id: auth-service-users
+          uri: ${AUTH_SERVICE_URL:http://auth-service:8081}
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - StripPrefix=0
+            - JwtAuthenticationFilter
+            - name: CircuitBreaker
+              args:
+                name: authCB
+                fallbackUri: forward:/fallback/auth
+
+        # Expense Service
+        - id: expense-service
+          uri: ${EXPENSE_SERVICE_URL:http://expense-service:8082}
+          predicates:
+            - Path=/api/v1/expenses/**,/api/v1/categories/**
+          filters:
+            - StripPrefix=0
+            - JwtAuthenticationFilter
+            - name: CircuitBreaker
+              args:
+                name: expenseCB
+                fallbackUri: forward:/fallback/expense
+
+        # Approval Service
+        - id: approval-service
+          uri: ${APPROVAL_SERVICE_URL:http://approval-service:8083}
+          predicates:
+            - Path=/api/v1/approvals/**
+          filters:
+            - StripPrefix=0
+            - JwtAuthenticationFilter
+            - name: CircuitBreaker
+              args:
+                name: approvalCB
+                fallbackUri: forward:/fallback/approval
+
+        # Report Service
+        - id: report-service
+          uri: ${REPORT_SERVICE_URL:http://report-service:8084}
+          predicates:
+            - Path=/api/v1/reports/**
+          filters:
+            - StripPrefix=0
+            - JwtAuthenticationFilter
+            - name: CircuitBreaker
+              args:
+                name: reportCB
+                fallbackUri: forward:/fallback/report
+
+  # ─── Redis for rate limiting ────────────────────────────────
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:redispass123}
+
+# ─── Resilience4j Circuit Breakers ──────────────────────────
+resilience4j:
+  circuitbreaker:
+    instances:
+      authCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      expenseCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      approvalCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      reportCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    com.expensemanager: DEBUG
+    org.springframework.cloud.gateway: INFO

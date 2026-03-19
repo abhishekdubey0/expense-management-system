@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+    .container { max-width:600px; margin:30px auto; background:#fff; border-radius:8px;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; }
+    .header { background:#DC2626; color:#fff; padding:24px 32px; }
+    .header h1 { margin:0; font-size:22px; }
+    .body { padding:32px; color:#333; }
+    .amount-box { background:#FEF2F2; border-left:4px solid #DC2626;
+                  padding:16px; border-radius:4px; margin:20px 0; }
+    .amount-box .amount { font-size:24px; font-weight:bold; color:#B91C1C; }
+    .reason-box { background:#FFF7ED; border:1px solid #FED7AA;
+                  padding:16px; border-radius:4px; margin:16px 0; }
+    .badge { display:inline-block; background:#FEE2E2; color:#991B1B;
+             padding:4px 12px; border-radius:20px; font-weight:bold; margin-bottom:12px; }
+    .btn { display:inline-block; padding:12px 24px; background:#DC2626;
+           color:#fff; text-decoration:none; border-radius:6px; margin-top:20px; }
+    .footer { padding:16px 32px; background:#f9fafb; color:#888; font-size:12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>❌ Expense Rejected</h1>
+  </div>
+  <div class="body">
+    <p>Hi <strong th:text="${submitterName}">User</strong>,</p>
+    <p>Unfortunately, your expense has been <span class="badge">REJECTED</span></p>
+    <div class="amount-box">
+      <div><strong th:text="${expenseTitle}">Expense Title</strong></div>
+      <div class="amount" th:text="${amount}">INR 0.00</div>
+      <div style="margin-top:8px; color:#555;">
+        Rejected by: <strong th:text="${approverName}">Approver</strong>
+      </div>
+    </div>
+    <div class="reason-box">
+      <strong>Reason for Rejection:</strong>
+      <p style="margin:8px 0 0;" th:text="${rejectionReason}">No reason provided</p>
+    </div>
+    <p>You may edit and resubmit your expense after addressing the concerns raised.</p>
+    <a th:href="${appUrl + '/expenses/' + expenseUuid}" class="btn">Review & Resubmit</a>
+  </div>
+  <div class="footer">
+    This is an automated message from Expense Manager. Please do not reply.
+  </div>
+</div>
+</body>
+</html>

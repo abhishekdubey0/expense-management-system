@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+    .container { max-width:600px; margin:30px auto; background:#fff; border-radius:8px;
+                 box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; }
+    .header { background:#2563EB; color:#fff; padding:24px 32px; }
+    .header h1 { margin:0; font-size:22px; }
+    .body { padding:32px; color:#333; }
+    .amount-box { background:#EFF6FF; border-left:4px solid #2563EB;
+                  padding:16px; border-radius:4px; margin:20px 0; }
+    .amount-box .amount { font-size:24px; font-weight:bold; color:#1E40AF; }
+    .btn { display:inline-block; padding:12px 24px; background:#2563EB;
+           color:#fff; text-decoration:none; border-radius:6px; margin-top:20px; }
+    .footer { padding:16px 32px; background:#f9fafb; color:#888; font-size:12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>💼 Expense Submitted for Review</h1>
+  </div>
+  <div class="body">
+    <p>Hi <strong th:text="${submitterName}">User</strong>,</p>
+    <p>Your expense has been submitted and is now pending approval.</p>
+    <div class="amount-box">
+      <div><strong th:text="${expenseTitle}">Expense Title</strong></div>
+      <div class="amount" th:text="${amount}">INR 0.00</div>
+    </div>
+    <p>You'll be notified once it's reviewed by your manager.</p>
+    <a th:href="${appUrl + '/expenses/' + expenseUuid}" class="btn">View Expense</a>
+  </div>
+  <div class="footer">
+    This is an automated message from Expense Manager. Please do not reply.
+  </div>
+</div>
+</body>
+</html>

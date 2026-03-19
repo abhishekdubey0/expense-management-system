@@ -1,0 +1,290 @@
+{
+  "info": {
+    "name": "Expense Management System",
+    "description": "Complete API collection for all microservices",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url",      "value": "http://localhost:8080" },
+    { "key": "access_token",  "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "expense_uuid",  "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"Test@1234\",\n  \"phone\": \"+919876543210\",\n  \"department\": \"Engineering\",\n  \"employeeId\": \"EMP001\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "pm.collectionVariables.set('access_token',  json.data.accessToken);",
+                  "pm.collectionVariables.set('refresh_token', json.data.refreshToken);",
+                  "pm.test('Login successful', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@company.com\",\n  \"password\": \"Test@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/logout?refreshToken={{refresh_token}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Create Expense",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.data) pm.collectionVariables.set('expense_uuid', json.data.uuid);",
+                  "pm.test('Expense created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/expenses",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Team Lunch - Client Meeting\",\n  \"description\": \"Lunch with Acme Corp client\",\n  \"amount\": 2450.00,\n  \"currency\": \"INR\",\n  \"expenseDate\": \"2024-01-15\",\n  \"categoryId\": 3,\n  \"department\": \"Engineering\",\n  \"projectCode\": \"PROJ-101\",\n  \"notes\": \"Receipt attached\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Expenses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/expenses?page=0&size=10&sortBy=createdAt",
+              "query": [
+                { "key": "page",   "value": "0" },
+                { "key": "size",   "value": "10" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Get Expense by UUID",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/expenses/{{expense_uuid}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Update Expense",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/expenses/{{expense_uuid}}",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 2650.00,\n  \"notes\": \"Updated: added tip\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Upload Receipt",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/expenses/{{expense_uuid}}/receipt",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "/path/to/receipt.pdf" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Expense for Approval",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/expenses/{{expense_uuid}}/submit",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Search Expenses",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/expenses/search?query=lunch&page=0&size=10",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Delete Expense (soft)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/v1/expenses/{{expense_uuid}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approvals",
+      "item": [
+        {
+          "name": "Get Pending Approvals (Manager)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/approvals/pending?page=0&size=20",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Approve Expense",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/approvals/{{expense_uuid}}/approve",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Approved — valid business expense\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reject Expense",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/approvals/{{expense_uuid}}/reject",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comment\": \"Receipt missing. Please re-submit with receipt.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Track My Submissions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/approvals/my-submissions?page=0&size=10",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Get Approval Chain for Expense",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/approvals/expense/{{expense_uuid}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "My Summary (current month)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/reports/my-summary",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "My Summary (date range)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/reports/my-summary?from=2024-01-01&to=2024-01-31",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Department Report (Finance Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/reports/department?from=2024-01-01&to=2024-01-31",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Top Spenders (Finance Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/reports/top-spenders?from=2024-01-01&to=2024-01-31",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        },
+        {
+          "name": "Export CSV (Finance Admin)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/reports/export?from=2024-01-01&to=2024-01-31",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }]
+          }
+        }
+      ]
+    }
+  ]
+}
